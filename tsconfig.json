@@ -1,0 +1,22 @@
+{
+  // Visit https://aka.ms/tsconfig to read more about this file
+  "compilerOptions": {
+    // Playwright transpiles TS itself, tsc only type-checks.
+    // "nodenext" would require explicit ".js" extensions in every relative import
+    // ("./pages/SearchPage.js" for a .ts file) - "bundler" resolves them without extensions.
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "esnext",
+    "types": ["node"],
+
+    "noUncheckedIndexedAccess": true,
+
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+    "noEmit": true
+  }
+}
