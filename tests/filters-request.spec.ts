@@ -19,10 +19,9 @@ const searchParamsOf = (request: Request) => new URL(request.url()).searchParams
 
 test.describe('Filters request', () => {
   test.beforeEach(async ({ page }) => {
-    // getByRole can't see the banner when the Guests modal is open (modal adds aria-hidden to everything else)
-    await page.addLocatorHandler(page.locator('[data-cookiefirst-widget="banner"]'), async () => {
-      await page.locator('[data-cookiefirst-action="reject"]').click();
-    });
+    // The cookie banner randomly closes the Guests modal and shifts the page so block it instead of dismissing it
+
+    await page.route(/cookiefirst\.com/, (route) => route.abort());
 
     await page.goto('/app', { waitUntil: 'domcontentloaded' });
     // The app writes the search state into the URL once it's initialized and it can take 10+ seconds
