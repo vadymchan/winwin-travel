@@ -16,7 +16,9 @@ export default defineConfig([
   {
     files: ['tests/**'],
     extends: [playwright.configs['flat/recommended']],
-    rules: {},
+    rules: {
+      'playwright/expect-expect': ['warn', { assertFunctionPatterns: ['^assert'] }],
+    },
   },
   tseslint.configs.recommended,
   eslintConfigPrettier,
