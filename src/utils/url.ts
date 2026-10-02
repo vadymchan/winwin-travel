@@ -1,4 +1,6 @@
-import type { Page } from '@playwright/test';
+import type { Page, Request } from '@playwright/test';
+
+export const searchParamsOf = (request: Request) => new URL(request.url()).searchParams;
 
 export const urlParam = (page: Page, key: string) => new URL(page.url()).searchParams.get(key);
 

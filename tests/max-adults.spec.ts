@@ -1,63 +1,39 @@
-import { test, expect } from '@playwright/test';
-import { urlParam } from '../utils/url';
+import { test } from './_fixtures/fixtures';
 
 const MAX_ADULTS = 10;
 
 test.describe('Max adults selection', () => {
-  test.beforeEach(async ({ page }) => {
-    // TODO: make a fixture
-    await page.route(/cookiefirst\.com/, (route) => route.abort());
-
-    await page.goto('/app', { waitUntil: 'domcontentloaded' });
-    // The app writes the search state into the URL once it's initialized and it can take 10+ seconds
-    await expect
-      .poll(() => urlParam(page, 'search.pagination.limit'), { timeout: 30_000 })
-      .not.toBeNull();
-
-    await page.getByTestId('guests-select__open--button').click();
+  test.beforeEach(async ({ searchPage }) => {
+    await searchPage.open();
+    await searchPage.guestSelect.open();
   });
 
-  test('Clicking up to max disables only Increment and updates the URL', async ({ page }) => {
-    const incrementButton = page.getByTestId('guests-select__adults-number--increment--button');
-    const decrementButton = page.getByTestId('guests-select__adults-number--decrement--button');
-
-    const adultsInput = page.getByTestId('guests-select__adults-number--input');
-    const initialAdults = Number(await adultsInput.inputValue());
-
-    for (let value = initialAdults + 1; value <= MAX_ADULTS; value++) {
-      await incrementButton.click();
-      await expect(adultsInput).toHaveValue(String(value));
+  test('Clicking up to max disables only Increment and updates the URL', async ({ searchPage }) => {
+    const initialAdults = await searchPage.guestSelect.getAdultsValue();
+    for (let value = initialAdults; value < MAX_ADULTS; value++) {
+      await searchPage.guestSelect.clickAdultsIncrement();
     }
 
-    await expect(incrementButton).toBeDisabled();
-    await expect(decrementButton).toBeEnabled();
-
-    await expect
-      .poll(() => urlParam(page, 'search.guestQuantity.adultsQuantity'))
-      .toBe(String(MAX_ADULTS));
+    await searchPage.guestSelect.assertAdultsValue(String(MAX_ADULTS));
+    await searchPage.guestSelect.assertAdultsIncrementDisabled();
+    await searchPage.guestSelect.assertAdultsDecrementEnabled();
+    await searchPage.guestSelect.assertAdultsInUrl(String(MAX_ADULTS));
   });
 
-  test('Typing max value is accepted', async ({ page }) => {
-    const adultsInput = page.getByTestId('guests-select__adults-number--input');
-    const incrementButton = page.getByTestId('guests-select__adults-number--increment--button');
-    const decrementButton = page.getByTestId('guests-select__adults-number--decrement--button');
+  test('Typing max value is accepted', async ({ searchPage }) => {
+    await searchPage.guestSelect.typeAdults(String(MAX_ADULTS));
 
-    await adultsInput.press('ControlOrMeta+a');
-    await adultsInput.pressSequentially(String(MAX_ADULTS));
-
-    await expect(adultsInput).toHaveValue(String(MAX_ADULTS));
-    await expect(incrementButton).toBeDisabled();
-    await expect(decrementButton).toBeEnabled();
+    await searchPage.guestSelect.assertAdultsValue(String(MAX_ADULTS));
+    await searchPage.guestSelect.assertAdultsIncrementDisabled();
+    await searchPage.guestSelect.assertAdultsDecrementEnabled();
   });
 
-  test('Typing a value above max drops the last digit', async ({ page }) => {
+  test('Typing a value above max drops the last digit', async ({ searchPage }) => {
     const aboveMax = MAX_ADULTS + 1;
     const expectedValue = Math.floor(aboveMax / 10);
-    const adultsInput = page.getByTestId('guests-select__adults-number--input');
 
-    await adultsInput.press('ControlOrMeta+a');
-    await adultsInput.pressSequentially(String(aboveMax));
+    await searchPage.guestSelect.typeAdults(String(aboveMax));
 
-    await expect(adultsInput).toHaveValue(String(expectedValue));
+    await searchPage.guestSelect.assertAdultsValue(String(expectedValue));
   });
 });
